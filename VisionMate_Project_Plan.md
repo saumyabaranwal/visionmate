@@ -184,7 +184,7 @@ visionmate/
 -   Frontend integration
 -   Response formatting
 
-## Member 3 --- Computer Vision
+## Saumya --- Computer Vision
 
 -   YOLO integration
 -   Object detection
