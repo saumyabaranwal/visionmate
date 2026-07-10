@@ -192,7 +192,7 @@ visionmate/
 -   ONNX Runtime
 -   Model optimization
 
-## Member 4 --- OCR & Accessibility
+## Moulik --- OCR & Accessibility
 
 -   PaddleOCR
 -   Medicine reader
