@@ -169,7 +169,7 @@ visionmate/
 
 # Team Division
 
-## Member 1 --- Frontend
+## Esha --- Frontend
 
 -   React UI
 -   Tailwind CSS
