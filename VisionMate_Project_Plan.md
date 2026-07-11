@@ -177,7 +177,7 @@ visionmate/
 -   Voice output
 -   Display results
 
-## Member 2 --- Backend
+## Ammar --- Backend
 
 -   FastAPI
 -   API endpoints
