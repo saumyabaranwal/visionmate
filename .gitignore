@@ -156,3 +156,41 @@ node_modules/
 
 # Vite
 dist/
+# -----------------------
+# Python
+# -----------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+venv/
+.venv/
+**/venv/
+**/.venv/
+
+# Python environment files
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# AI outputs
+uploads/
+outputs/
+
+# Model files (optional)
+*.onnx
+
+*.pt
+outputs/
+*.jpg
+
+# OS files
+.DS_Store
+Thumbs.db
