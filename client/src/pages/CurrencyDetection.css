@@ -1,0 +1,113 @@
+.read-page{
+
+    min-height:100vh;
+    background:#07111f;
+    color:white;
+    padding:20px;
+
+}
+
+.back-btn{
+
+    background:none;
+    border:none;
+    color:#4FC3F7;
+    font-size:18px;
+    cursor:pointer;
+    margin-bottom:20px;
+
+}
+
+.read-page h1{
+
+    text-align:center;
+    margin-bottom:15px;
+
+}
+
+.description{
+
+    text-align:center;
+    color:#b9c9d7;
+    margin-bottom:30px;
+
+}
+
+
+
+.camera-icon{
+
+    font-size:70px;
+    color:#4FC3F7;
+    margin-bottom:20px;
+
+}
+
+.scan-btn{
+
+    width:100%;
+    margin-top:25px;
+    padding:16px;
+    border:none;
+    border-radius:15px;
+
+    background:#4FC3F7;
+
+    color:#07111f;
+
+    font-size:18px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+}
+
+.result-box{
+
+    margin-top:30px;
+    background:#10263b;
+    border-radius:20px;
+    padding:20px;
+
+}
+
+.result-box h3{
+
+    margin-bottom:12px;
+
+}
+
+.result-box p{
+
+    color:#d2dce6;
+    line-height:1.6;
+
+}
+
+.speak-btn{
+
+    width:100%;
+    margin-top:25px;
+
+    padding:16px;
+
+    border:none;
+
+    border-radius:15px;
+
+    background:#173753;
+
+    color:white;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+}
+.scan-btn:disabled{
+
+opacity:.6;
+
+cursor:not-allowed;
+
+}

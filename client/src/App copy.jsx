@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import FeatureSelection from "./pages/FeatureSelection";
 
 import Home from "./pages/Home";
 import ReadText from "./pages/ReadText";
@@ -16,7 +15,6 @@ function App() {
         <Route path="/object-detection" element={<ObjectDetection />} />
         <Route path="/currency-detection" element={<CurrencyDetection />} />
         <Route path="/surroundings" element={<Surroundings />} />
-        <Route path="/features" element={<FeatureSelection />} />
       </Routes>
     </BrowserRouter>
   );
