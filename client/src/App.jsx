@@ -40,9 +40,22 @@ function App() {
       canvas.toBlob(resolve, "image/jpeg")
     );
 
+    const formData = new FormData();
+    formData.append("image", imageBlob, "capture.jpg");
+
     const imageUrl = URL.createObjectURL(imageBlob);
     setImage(imageUrl)
+
+    const response = await fetch("http://localhost:8000", {
+      method: 'POST',
+      body: formData
+    });
+
+
+    
   }
+
+
 
 
 

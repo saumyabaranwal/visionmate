@@ -1,9 +1,8 @@
-from fastapi import FastAPI , Request
+from fastapi import FastAPI , Request , UploadFile , File
 from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,17 +12,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def get():
-    return {
-        "message": "Backend working"
-    }
 
 @app.post("/")
-async def post(request: Request):
+async def scan(image: UploadFile = File(...)):
 
-    data = await request.json()
+    contents = await image.read()
+
+    with open(f"uploads/{image.filename}", "wb") as f:
+       f.write(contents)
 
     return {
-        "message": f'hello {data["name"]}'
+    "success": True
     }
+
+    
+   
