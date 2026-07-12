@@ -10,7 +10,6 @@ input_name = session.get_inputs()[0].name
 with open("models/class_names.json", "r") as f:
     class_names = json.load(f)
 
-# Same normalization used during training
 MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)
 STD = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
@@ -20,7 +19,7 @@ def preprocess(image_path, img_size=224):
     img = img.resize((img_size, img_size))
     img = np.array(img).astype(np.float32) / 255.0
     img = (img - MEAN) / STD
-    img = img.transpose(2, 0, 1)  # HWC -> CHW
+    img = img.transpose(2, 0, 1)
     img = np.expand_dims(img, axis=0).astype(np.float32)
     return img
 
