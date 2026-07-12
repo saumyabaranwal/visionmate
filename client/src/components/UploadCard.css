@@ -1,0 +1,122 @@
+.upload-section{
+
+    padding:60px 20px;
+
+    text-align:center;
+}
+
+.upload-section h2{
+
+    font-size:34px;
+
+    margin-bottom:10px;
+}
+
+.upload-section p{
+
+    color:#b8c8d9;
+
+    margin-bottom:35px;
+}
+
+.upload-card{
+
+    max-width:550px;
+
+    margin:auto;
+
+    background:#10263b;
+
+    border:2px dashed #4fc3f7;
+
+    border-radius:25px;
+
+    padding:25px;
+}
+
+.placeholder{
+
+    height:260px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:70px;
+
+    color:#4fc3f7;
+}
+
+.placeholder span{
+
+    margin-top:20px;
+
+    font-size:18px;
+
+    color:white;
+}
+
+.preview-image{
+
+    width:100%;
+
+    border-radius:20px;
+
+    object-fit:cover;
+
+    max-height:350px;
+}
+
+.buttons{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+    margin-top:25px;
+}
+
+.upload-btn,
+.camera-btn{
+
+    background:#4fc3f7;
+
+    color:#07111f;
+
+    padding:18px;
+
+    border-radius:50px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.upload-btn:hover,
+.camera-btn:hover{
+
+    transform:translateY(-3px);
+}
+
+@media(min-width:768px){
+
+.buttons{
+
+    flex-direction:row;
+}
+
+.upload-btn,
+.camera-btn{
+
+    flex:1;
+}
+
+}
