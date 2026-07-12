@@ -1,8 +1,8 @@
 from fastapi import FastAPI , UploadFile , File
 from fastapi.middleware.cors import CORSMiddleware
 import os
-# from services.object_detector import detect_objects
-# from services.currency_detector import predict_currency
+from ai.services.object_detector import detect_objects
+from ai.services.currency_detector import detect_currency
 
 
 
@@ -50,30 +50,23 @@ async def read_text(image: UploadFile = File(...)):
 async def object_detection(image: UploadFile = File(...)):
     path = await save_image(image)
 
-    # result = detect_objects(path)
+    result = detect_objects(path)
 
-    # return result
+    return result
 
-    return {
-        "success": True,
-        "object": "ball"
-    }
+   
 
 
 @app.post("/currency-detection")
 async def currency_detection(image: UploadFile = File(...)):
     path = await save_image(image)
 
-    # result = predict_currency(path)
+    result = detect_currency(path)
 
-    # return result
+    return result
 
-    return {
-        "success": True,
-        "currency": "100 rupees"
-    }
-
-
+    
+   
 
 
 @app.post("/surroundings")

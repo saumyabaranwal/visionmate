@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile
-from services.object_detector import detect_objects
-from services.currency_detector import detect_currency
+from server.ai.services.object_detector import detect_objects
+from server.ai.services.currency_detector import detect_currency
 
 router = APIRouter()
 

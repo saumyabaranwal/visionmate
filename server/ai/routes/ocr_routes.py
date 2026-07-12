@@ -8,8 +8,8 @@ import cv2
 import numpy as np
 from fastapi import APIRouter, UploadFile, File, HTTPException
 
-from services.ocr_service import extract_text
-from services.medicine_service import parse_medicine_label
+from server.ai.services.ocr_service import extract_text
+from server.ai.services.medicine_service import parse_medicine_label
 
 router = APIRouter()
 

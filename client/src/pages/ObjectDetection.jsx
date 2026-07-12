@@ -45,12 +45,12 @@ function ObjectDetection() {
 
                 const data = await response.json();
 
-                setResult(data.object);
+                setResult(data.spoken_text);
                 setLoading(false);
 
                 window.speechSynthesis.cancel();
 
-                const speech = new SpeechSynthesisUtterance(data.object);
+                const speech = new SpeechSynthesisUtterance(data.spoken_text);
 
                 window.speechSynthesis.speak(speech);
 
