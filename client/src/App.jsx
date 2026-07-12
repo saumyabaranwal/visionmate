@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import FeatureSelection from "./pages/FeatureSelection";
-
+import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import FeatureSelection from "./pages/FeatureSelection";
 import ReadText from "./pages/ReadText";
 import ObjectDetection from "./pages/ObjectDetection";
 import CurrencyDetection from "./pages/CurrencyDetection";
@@ -9,7 +9,10 @@ import Surroundings from "./pages/Surroundings";
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
+     <Navbar/>
+
+     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/read-text" element={<ReadText />} />
@@ -19,6 +22,8 @@ function App() {
         <Route path="/features" element={<FeatureSelection />} />
       </Routes>
     </BrowserRouter>
+    </>
+    
   );
 }
 

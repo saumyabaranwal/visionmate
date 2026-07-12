@@ -11,10 +11,7 @@ function CameraView({ videoRef }) {
 
                 const stream = await navigator.mediaDevices.getUserMedia({
 
-                    video: {
-                        facingMode: "environment"
-                    }
-
+                    video: true
                 });
 
                 if (videoRef.current) {

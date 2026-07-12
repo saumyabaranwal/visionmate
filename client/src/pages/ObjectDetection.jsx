@@ -1,9 +1,6 @@
 import "./ObjectDetection.css";
-import Navbar from "../components/Navbar";
 import CameraView from "../components/CameraView";
-
 import { FaArrowLeft, FaVolumeUp } from "react-icons/fa";
-
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,6 +11,7 @@ function ObjectDetection() {
     const videoRef = useRef(null);
 
     const [result, setResult] = useState("Waiting for scan...");
+    const [loading, setLoading] = useState(false);
 
     const captureImage = async () => {
 
@@ -35,7 +33,8 @@ function ObjectDetection() {
             formData.append("image", blob, "image.jpg");
 
             try {
-
+                 
+                setLoading(true);
                 const response = await fetch(
                     "http://127.0.0.1:8000/object-detection",
                     {
@@ -47,9 +46,16 @@ function ObjectDetection() {
                 const data = await response.json();
 
                 setResult(data.object);
+                setLoading(false);
+
+                window.speechSynthesis.cancel();
+
+                const speech = new SpeechSynthesisUtterance(data.object);
+
+                window.speechSynthesis.speak(speech);
 
             } catch {
-
+                setLoading(false);
                 setResult("Unable to connect to backend.");
 
             }
@@ -147,7 +153,6 @@ useEffect(() => {
     return (
 
         <>
-            <Navbar />
 
             <main className="read-page">
 
@@ -169,6 +174,7 @@ useEffect(() => {
                 <button
                     className="scan-btn"
                     onClick={captureImage}
+                    disabled={loading}
                 >
                     Identify Object
                 </button>

@@ -1,5 +1,6 @@
 from fastapi import FastAPI , Request , UploadFile , File
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 
 app = FastAPI()
@@ -13,17 +14,64 @@ app.add_middleware(
 )
 
 
-@app.post("/")
-async def scan(image: UploadFile = File(...)):
+os.makedirs("uploads", exist_ok=True)
 
+
+async def save_image(image: UploadFile):
     contents = await image.read()
 
-    with open(f"uploads/{image.filename}", "wb") as f:
-       f.write(contents)
+    path = f"uploads/{image.filename}"
 
-    return {
-    "success": True
-    }
+    with open(path, "wb") as f:
+        f.write(contents)
+
+    return path
+
+
+
+
+@app.post("/read-text")
+async def read_text(image: UploadFile = File(...)):
+    path = await save_image(image)
 
     
-   
+
+    return {
+        "success": True,
+        "text": "hello"
+    }
+
+
+@app.post("/object-detection")
+async def object_detection(image: UploadFile = File(...)):
+    path = await save_image(image)
+
+    
+
+    return {
+        "success": True,
+        "object": "ball"
+    }
+
+
+@app.post("/currency-detection")
+async def currency_detection(image: UploadFile = File(...)):
+    path = await save_image(image)
+
+
+
+    return {
+        "success": True,
+        "currency": "100 Rupees"
+    }
+
+
+@app.post("/surroundings")
+async def surroundings(image: UploadFile = File(...)):
+    path = await save_image(image)
+
+
+    return {
+        "success": True,
+        "description": "tree"
+    }

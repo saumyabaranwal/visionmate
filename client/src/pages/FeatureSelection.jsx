@@ -1,5 +1,4 @@
 import "./FeatureSelection.css";
-import Navbar from "../components/Navbar";
 import FeatureCard from "../components/FeatureCard";
 
 import { useNavigate } from "react-router-dom";
@@ -18,7 +17,6 @@ function FeatureSelection() {
 
   return (
     <>
-      <Navbar />
 
       <main className="feature-page">
 

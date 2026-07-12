@@ -1,11 +1,9 @@
 import "./CurrencyDetection.css";
-import Navbar from "../components/Navbar";
 import CameraView from "../components/CameraView";
-
 import { FaArrowLeft, FaVolumeUp } from "react-icons/fa";
-
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+
 
 function CurrencyDetection() {
 
@@ -14,6 +12,7 @@ function CurrencyDetection() {
     const videoRef = useRef(null);
 
     const [result, setResult] = useState("Waiting for scan...");
+    const [loading, setLoading] = useState(false);
 
     const captureImage = async () => {
 
@@ -36,6 +35,7 @@ function CurrencyDetection() {
 
             try {
 
+                setLoading(true);
                 const response = await fetch(
                     "http://127.0.0.1:8000/currency-detection",
                     {
@@ -47,9 +47,16 @@ function CurrencyDetection() {
                 const data = await response.json();
 
                 setResult(data.currency);
+                setLoading(false);
+
+                window.speechSynthesis.cancel();
+
+                const speech = new SpeechSynthesisUtterance(data.currency);
+
+                window.speechSynthesis.speak(speech);
 
             } catch {
-
+                setLoading(false);
                 setResult("Unable to connect to backend.");
 
             }
@@ -148,7 +155,6 @@ useEffect(() => {
     return (
 
         <>
-            <Navbar />
 
             <main className="read-page">
 
@@ -170,6 +176,7 @@ useEffect(() => {
                 <button
                     className="scan-btn"
                     onClick={captureImage}
+                    disabled={loading}
                 >
                     Detect Currency
                 </button>

@@ -1,11 +1,10 @@
 import "./Surroundings.css";
-import Navbar from "../components/Navbar";
 import CameraView from "../components/CameraView";
 
 import { FaArrowLeft, FaVolumeUp } from "react-icons/fa";
 
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 function Surroundings() {
 
@@ -14,6 +13,7 @@ function Surroundings() {
     const videoRef = useRef(null);
 
     const [result, setResult] = useState("Waiting for scan...");
+    const [loading, setLoading] = useState(false);
 
     const captureImage = async () => {
 
@@ -35,7 +35,7 @@ function Surroundings() {
             formData.append("image", blob, "image.jpg");
 
             try {
-
+                setLoading(true);
                 const response = await fetch(
                     "http://127.0.0.1:8000/surroundings",
                     {
@@ -47,9 +47,18 @@ function Surroundings() {
                 const data = await response.json();
 
                 setResult(data.description);
+                setLoading(false);
+
+
+                window.speechSynthesis.cancel();
+
+                const speech = new SpeechSynthesisUtterance(data.description);
+
+                window.speechSynthesis.speak(speech);
 
             } catch {
 
+                setLoading(false);
                 setResult("Unable to connect to backend.");
 
             }
@@ -150,7 +159,6 @@ useEffect(() => {
     return (
 
         <>
-            <Navbar />
 
             <main className="read-page">
 
@@ -172,6 +180,7 @@ useEffect(() => {
                 <button
                     className="scan-btn"
                     onClick={captureImage}
+                    disabled={loading}
                 >
                     Describe Surroundings
                 </button>
