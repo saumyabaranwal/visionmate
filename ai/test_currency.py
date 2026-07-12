@@ -3,10 +3,10 @@ import numpy as np
 import json
 from PIL import Image
 
-session = ort.InferenceSession("models/currency_classifier.onnx", providers=["CPUExecutionProvider"])
+session = ort.InferenceSession("models/currency_mine.onnx", providers=["CPUExecutionProvider"])
 input_name = session.get_inputs()[0].name
 
-with open("models/class_names.json") as f:
+with open("models/class_names_mine.json") as f:
     class_names = json.load(f)
 
 def preprocess(image_path):

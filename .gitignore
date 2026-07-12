@@ -142,6 +142,20 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
+
+# Python
+server/venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Environment
+.env
+
+# Vite
+dist/
 # -----------------------
 # Python
 # -----------------------
@@ -180,3 +194,5 @@ outputs/
 # OS files
 .DS_Store
 Thumbs.db
+
+server/uploads/
