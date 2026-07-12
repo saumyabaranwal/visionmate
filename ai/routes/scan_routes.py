@@ -10,8 +10,8 @@ async def detect(file: UploadFile):
     contents = await file.read()
     with open("temp.jpg", "wb") as f:
         f.write(contents)
-    results = detect_objects("temp.jpg")
-    return {"objects": results}
+    result = detect_objects("temp.jpg")
+    return result
 
 
 @router.post("/currency")

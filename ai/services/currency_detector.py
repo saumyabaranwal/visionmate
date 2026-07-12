@@ -3,7 +3,6 @@ import numpy as np
 import json
 from PIL import Image
 
-# Load once at import time
 session = ort.InferenceSession("models/currency_classifier.onnx", providers=["CPUExecutionProvider"])
 input_name = session.get_inputs()[0].name
 
@@ -39,8 +38,14 @@ def detect_currency(image_path):
     denomination = class_names[predicted_idx]
     confidence = float(probs[predicted_idx])
 
+    if confidence < 0.5:
+        spoken_text = "I'm not sure. Please try again with better lighting and hold the note flat."
+    else:
+        spoken_text = f"This is a {denomination} rupee note."
+
     return {
         "denomination": f"₹{denomination}",
         "confidence": round(confidence, 2),
-        "status": "ok"
+        "status": "ok",
+        "spoken_text": spoken_text
     }
