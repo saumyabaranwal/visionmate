@@ -1,5 +1,4 @@
 import "./ReadText.css";
-import Navbar from "../components/Navbar";
 import { FaArrowLeft, FaVolumeUp } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
@@ -8,229 +7,194 @@ import { useState } from "react";
 
 function ReadText() {
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-const videoRef = useRef(null);
+    const videoRef = useRef(null);
 
-const [result, setResult] = useState("Waiting for scan...");
-const [loading, setLoading] = useState(false);
+    const [result, setResult] = useState("Waiting for scan...");
+    const [loading, setLoading] = useState(false);
 
-  
-      
-const captureImage = async () => {
 
-    const video = videoRef.current;
 
-    const canvas = document.createElement("canvas");
+    const captureImage = async () => {
 
-    canvas.width = video.videoWidth;
+        const video = videoRef.current;
 
-    canvas.height = video.videoHeight;
+        const canvas = document.createElement("canvas");
 
-    const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
 
-    ctx.drawImage(video, 0, 0);
+        canvas.height = video.videoHeight;
 
-    canvas.toBlob(async (blob) => {
+        const ctx = canvas.getContext("2d");
 
-        const formData = new FormData();
+        ctx.drawImage(video, 0, 0);
 
-        formData.append("image", blob, "image.jpg");
+        canvas.toBlob(async (blob) => {
 
-        try {
- setLoading(true);
-            const response = await fetch(
-             
-                "http://127.0.0.1:8000/read-text",
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
+            const formData = new FormData();
 
-            const data = await response.json();
+            formData.append("image", blob, "image.jpg");
 
-            setResult(data.text);
-            setLoading(false);
+            try {
+                setLoading(true);
+                const response = await fetch(
 
-const speech = new SpeechSynthesisUtterance(data.text);
+                    "http://127.0.0.1:8000/read-text",
+                    {
+                        method: "POST",
+                        body: formData,
+                    }
+                );
 
-window.speechSynthesis.speak(speech);
+                const data = await response.json();
 
-        }
+                setResult(data.text);
+                setLoading(false);
 
-        catch (error) {
+                window.speechSynthesis.cancel();
 
-    console.log(error);
+                const speech = new SpeechSynthesisUtterance(data.text);
 
-    setLoading(false);
+                window.speechSynthesis.speak(speech);
 
-    setResult("Unable to connect to backend.");
+            }
 
-}
+            catch (error) {
 
-    }, "image/jpeg");
+                console.log(error);
 
-};
-useEffect(() => {
+                setLoading(false);
 
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+                setResult("Unable to connect to backend.");
 
-    if (!SpeechRecognition) return;
+            }
 
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "en-US";
-    recognition.continuous = true;
-    recognition.interimResults = false;
-
-    recognition.onresult = (event) => {
-
-        const command =
-            event.results[0][0].transcript.toLowerCase();
-
-        console.log(command);
-
-        if (
-            command.includes("scan") ||
-            command.includes("capture") ||
-            command.includes("read")
-        ) {
-
-            captureImage();
-
-        }
+        }, "image/jpeg");
 
     };
 
-    recognition.start();
+    useEffect(() => {
 
-}, []);
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
 
-useEffect(() => {
+        if (!SpeechRecognition) return;
 
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
 
-    if (!SpeechRecognition) return;
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = false;
 
-    const recognition = new SpeechRecognition();
+        recognition.onresult = (event) => {
 
-    recognition.lang = "en-US";
-    recognition.continuous = true;
-    recognition.interimResults = false;
+            const command =
+                event.results[event.resultIndex][0].transcript.toLowerCase();
 
-    recognition.onresult = (event) => {
+            console.log(command);
 
-        const command =
-            event.results[0][0].transcript.toLowerCase();
+            if (
+                command.includes("scan") ||
+                command.includes("capture") ||
+                command.includes("read")
+            ) {
 
-        console.log(command);
+                captureImage();
 
-        if (
-            command.includes("scan") ||
-            command.includes("capture") ||
-            command.includes("read")
-        ) {
+            }
 
-            captureImage();
+        };
 
-        }
+        window.speechSynthesis.cancel();
 
-    };
+        const speech = new SpeechSynthesisUtterance(
+            "Read Text selected. Point your camera towards the text and say scan, or press the Scan Text button."
+        );
 
-    window.speechSynthesis.cancel();
+        speech.onend = () => {
+            recognition.start();
+        };
 
-    const speech = new SpeechSynthesisUtterance(
-        "Read Text selected. Point your camera towards the text and say scan, or press the Scan Text button."
+        window.speechSynthesis.speak(speech);
+
+        return () => {
+            recognition.stop();
+            window.speechSynthesis.cancel();
+        };
+
+    }, []);
+
+    return (
+
+        <>
+
+
+            <main className="read-page">
+
+                <button
+                    className="back-btn"
+                    onClick={() => navigate("/features")}
+                >
+
+                    <FaArrowLeft /> Back
+
+                </button>
+
+                <h1>Read Text</h1>
+
+                <p className="description">
+
+                    Point the camera towards text.
+
+                </p>
+
+                <CameraView videoRef={videoRef} />
+                <button
+                    className="scan-btn"
+                    onClick={captureImage}
+                    disabled={loading}
+                >
+
+                    {loading ? "Scanning..." : "Scan Text"}
+
+                </button>
+
+                <div className="result-box">
+
+                    <h3>Detected Text</h3>
+
+                    <p>
+
+                        {result}
+
+                    </p>
+
+                </div>
+
+                <button
+                    className="speak-btn"
+                    onClick={() => {
+
+                        window.speechSynthesis.cancel();
+
+                        const speech = new SpeechSynthesisUtterance(result);
+
+                        window.speechSynthesis.speak(speech);
+
+                    }}
+                >
+
+                    Speak Result
+
+                </button>
+
+            </main>
+
+        </>
+
     );
-
-    speech.onend = () => {
-        recognition.start();
-    };
-
-    window.speechSynthesis.speak(speech);
-
-    return () => {
-        recognition.stop();
-        window.speechSynthesis.cancel();
-    };
-
-}, []);
-
-  return (
-
-    <>
-
-      <Navbar/>
-
-      <main className="read-page">
-
-        <button
-          className="back-btn"
-          onClick={()=>navigate("/features")}
-        >
-
-          <FaArrowLeft/> Back
-
-        </button>
-
-        <h1>Read Text</h1>
-
-        <p className="description">
-
-          Point the camera towards text.
-
-        </p>
-
-        <CameraView videoRef={videoRef}/>
-       <button
-className="scan-btn"
-onClick={captureImage}
-disabled={loading}
->
-
-{loading ? "Scanning..." : "Scan Text"}
-
-</button>
-
-        <div className="result-box">
-
-          <h3>Detected Text</h3>
-
-          <p>
-
-{result}
-
-</p>
-
-        </div>
-
-        <button
-    className="speak-btn"
-    onClick={() => {
-
-        window.speechSynthesis.cancel();
-
-const speech = new SpeechSynthesisUtterance(result);
-
-window.speechSynthesis.speak(speech);
-
-    }}
->
-
-Speak Result
-
-</button>
-
-      </main>
-
-    </>
-
-  );
 
 }
 

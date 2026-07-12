@@ -1,5 +1,4 @@
 import "./Home.css";
-import Navbar from "../components/Navbar";
 import { FaMicrophone } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
@@ -27,7 +26,6 @@ function Home() {
 
   return (
     <>
-      <Navbar />
 
       <main
         className="home"
@@ -36,8 +34,8 @@ function Home() {
         <section className="hero">
 
           <h1>
-    Welcome to <span>VisionMate</span>
-</h1>
+            Welcome to <span>VisionMate</span>
+          </h1>
           <p>
             Tap anywhere on the screen to choose a feature.
             <br /><br />
@@ -57,16 +55,16 @@ function Home() {
           </button>
 
           <span className="tap-text">
-    Tap anywhere to continue
-</span>
+            Tap anywhere to continue
+          </span>
 
-<p className="sub-text">
-    Or simply say:
-    <br /><br />
-    Read Text • Object Detection
-    <br />
-    Currency Detection • Describe Surroundings
-</p>
+          <p className="sub-text">
+            Or simply say:
+            <br /><br />
+            Read Text • Object Detection
+            <br />
+            Currency Detection • Describe Surroundings
+          </p>
 
         </section>
       </main>
