@@ -44,6 +44,8 @@ function Surroundings() {
                     }
                 );
 
+                
+
                 const data = await response.json();
 
                 setResult(data.description);

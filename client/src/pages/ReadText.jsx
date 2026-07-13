@@ -48,16 +48,16 @@ function ReadText() {
                         body: formData,
                     }
                 );
-               
+
 
                 const data = await response.json();
 
-                setResult(data.text);
+                setResult(data.spoken_text);
                 setLoading(false);
 
                 window.speechSynthesis.cancel();
 
-                const speech = new SpeechSynthesisUtterance(data.text);
+                const speech = new SpeechSynthesisUtterance(data.spoken_text);
 
                 window.speechSynthesis.speak(speech);
 
