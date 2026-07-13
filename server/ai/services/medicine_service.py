@@ -4,6 +4,9 @@
 import re
 from datetime import datetime
 
+from ai.services.ocr_service import extract_text
+import cv2
+
 
 # Common dosage units seen on Indian medicine packaging
 DOSAGE_PATTERN = re.compile(
@@ -110,4 +113,61 @@ def _normalize_date(raw: str) -> str:
             return f"{month}/{year}"
         except ValueError:
             return raw
+
+
+def read_medicine(image_path: str) -> dict:
+    """
+    Path-based entry point matching the team convention used by
+    detect_objects(image_path) / detect_currency(image_path).
+
+    Returns:
+        {
+            "success": bool,
+            "name": str | None,
+            "dosage": str | None,
+            "expiry": str | None,
+            "spoken_text": str
+        }
+    """
+    image = cv2.imread(image_path)
+    if image is None:
+        message = "Could not read the captured image. Please try again."
+        return {"success": False, "name": None, "dosage": None, "expiry": None, "spoken_text": message}
+
+    ocr_result = extract_text(image, preprocess=True)
+
+    if not ocr_result["lines"]:
+        message = "No text was detected on this label. Please try again with better lighting."
+        return {"success": True, "name": None, "dosage": None, "expiry": None, "spoken_text": message}
+
+    parsed = parse_medicine_label(ocr_result["lines"])
+    spoken_text = _build_speech_summary(parsed)
+
+    return {
+        "success": True,
+        "name": parsed["name"],
+        "dosage": parsed["dosage"],
+        "expiry": parsed["expiry"],
+        "spoken_text": spoken_text
+    }
+
+
+def _build_speech_summary(parsed: dict) -> str:
+    """Turns parsed fields into a natural sentence for TTS, since raw JSON reads poorly aloud."""
+    parts = []
+
+    if parsed["name"]:
+        parts.append(f"This appears to be {parsed['name']}.")
+    else:
+        parts.append("Could not confidently identify the medicine name.")
+
+    if parsed["dosage"]:
+        parts.append(f"Dosage: {parsed['dosage']}.")
+
+    if parsed["expiry"]:
+        parts.append(f"Expiry date: {parsed['expiry']}.")
+    else:
+        parts.append("Expiry date not found — please check manually.")
+
+    return " ".join(parts)
     return raw

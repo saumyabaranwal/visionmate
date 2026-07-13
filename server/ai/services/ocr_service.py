@@ -94,3 +94,39 @@ def extract_text(image: np.ndarray, preprocess: bool = True) -> dict:
         "full_text": " ".join(full_text_parts).strip(),
         "lines": lines
     }
+
+
+def read_text(image_path: str) -> dict:
+    """
+    Path-based entry point matching the team convention used by
+    detect_objects(image_path) / detect_currency(image_path).
+
+    Returns:
+        {
+            "success": bool,
+            "text": str,           # consumed directly by ReadText.jsx as data.text
+            "spoken_text": str,    # consistent field name across all AI services
+            "lines": [...]
+        }
+    """
+    image = cv2.imread(image_path)
+    if image is None:
+        return {
+            "success": False,
+            "text": "Could not read the captured image. Please try again.",
+            "spoken_text": "Could not read the captured image. Please try again.",
+            "lines": []
+        }
+
+    result = extract_text(image, preprocess=True)
+
+    if not result["full_text"]:
+        message = "No readable text was found. Try moving closer or improving lighting."
+        return {"success": True, "text": message, "spoken_text": message, "lines": []}
+
+    return {
+        "success": True,
+        "text": result["full_text"],
+        "spoken_text": result["full_text"],
+        "lines": result["lines"]
+    }
