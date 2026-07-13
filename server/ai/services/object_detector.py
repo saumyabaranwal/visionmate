@@ -1,20 +1,20 @@
 from ultralytics import YOLO
 
-model = YOLO("ai/yolo11n.onnx")
+model = YOLO("yolo11m.onnx")
 
 
-def detect_objects(image_path):
-    results = model(image_path)
+def detect_objects(image_path, confidence_threshold=0.55):
+    results = model(image_path, conf=confidence_threshold)
     detections = []
     for box in results[0].boxes:
         cls = int(box.cls[0])
         confidence = float(box.conf[0])
-        detections.append({
-            "label": model.names[cls],
-            "confidence": round(confidence, 2)
-        })
+        if confidence >= confidence_threshold:
+            detections.append({
+                "label": model.names[cls],
+                "confidence": round(confidence, 2)
+            })
 
-    # Sort by confidence, take top 2 for spoken summary
     top_detections = sorted(detections, key=lambda d: d["confidence"], reverse=True)[:2]
 
     if not top_detections:
