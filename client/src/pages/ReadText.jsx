@@ -18,6 +18,7 @@ function ReadText() {
 
     const captureImage = async () => {
 
+
         const video = videoRef.current;
 
         const canvas = document.createElement("canvas");
@@ -32,6 +33,7 @@ function ReadText() {
 
         canvas.toBlob(async (blob) => {
 
+
             const formData = new FormData();
 
             formData.append("image", blob, "image.jpg");
@@ -40,12 +42,13 @@ function ReadText() {
                 setLoading(true);
                 const response = await fetch(
 
-                    "http://127.0.0.1:8000/read-text",
+                    "/api/read-text",
                     {
                         method: "POST",
                         body: formData,
                     }
                 );
+               
 
                 const data = await response.json();
 
@@ -63,12 +66,15 @@ function ReadText() {
             catch (error) {
 
                 console.log(error);
+                alert(error)
 
                 setLoading(false);
 
                 setResult("Unable to connect to backend.");
 
             }
+
+          
 
         }, "image/jpeg");
 

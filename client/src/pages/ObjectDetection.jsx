@@ -15,8 +15,8 @@ function ObjectDetection() {
 
     const captureImage = async () => {
 
-        const video = videoRef.current;
-
+         const video = videoRef.current;
+    
         const canvas = document.createElement("canvas");
 
         canvas.width = video.videoWidth;
@@ -36,7 +36,7 @@ function ObjectDetection() {
                  
                 setLoading(true);
                 const response = await fetch(
-                    "http://127.0.0.1:8000/object-detection",
+                    "/api/object-detection",
                     {
                         method: "POST",
                         body: formData,
@@ -169,6 +169,7 @@ useEffect(() => {
                     Point the camera towards an object.
                 </p>
 
+                
                 <CameraView videoRef={videoRef} />
 
                 <button

@@ -37,7 +37,7 @@ function CurrencyDetection() {
 
                 setLoading(true);
                 const response = await fetch(
-                    "http://127.0.0.1:8000/currency-detection",
+                    "/api/currency-detection",
                     {
                         method: "POST",
                         body: formData,

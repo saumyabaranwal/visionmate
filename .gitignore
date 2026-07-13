@@ -196,3 +196,4 @@ outputs/
 Thumbs.db
 
 server/uploads/
+.env

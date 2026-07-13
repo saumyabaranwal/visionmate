@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/saumyabaranwal/visionmate/issues"
   },
-  "homepage": "https://github.com/saumyabaranwal/visionmate#readme"
+  "homepage": "https://github.com/saumyabaranwal/visionmate#readme",
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0"
+  }
 }
