@@ -1,8 +1,8 @@
 from fastapi import FastAPI , UploadFile , File
 from fastapi.middleware.cors import CORSMiddleware
 import os
-#from ai.services.object_detector import detect_objects
-#from ai.services.currency_detector import detect_currency
+from ai.services.object_detector import detect_objects
+from ai.services.currency_detector import detect_currency
 from ai.services.ocr_service import read_text
 from ai.services.medicine_service import read_medicine
 
@@ -56,20 +56,26 @@ async def medicine_reader(image: UploadFile = File(...)):
 
 @app.post("/api/object-detection")
 async def object_detection(image: UploadFile = File(...)):
-    return {
-        "success": False,
-        "message": "Object detection temporarily disabled."
-    }
+    path = await save_image(image)
+
+    result = detect_objects(path)
+
+    return result
 
    
 
 
 @app.post("/api/currency-detection")
 async def currency_detection(image: UploadFile = File(...)):
-    return {
-        "success": False,
-        "message": "Currency detection temporarily disabled."
-    }
+    path = await save_image(image)
+
+    result = detect_currency(path)
+
+    return result
+
+    
+   
+
 
 @app.post("/api/surroundings")
 async def surroundings(image: UploadFile = File(...)):
