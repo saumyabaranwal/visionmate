@@ -1,252 +1,217 @@
 # VisionMate 👁️
 
-## Overview
+## AI-Powered On-Device Accessibility Assistant for the Visually Impaired
 
-VisionMate is an AI-powered assistive web application designed to enhance the independence of visually impaired individuals by providing voice-guided assistance for everyday tasks. The application combines an intuitive user interface with accessibility-focused features, allowing users to interact through voice commands or touch-based navigation.
+VisionMate is an AI-powered, voice-guided web application that helps visually impaired individuals perform everyday tasks — reading printed text, identifying objects, recognizing currency, and reading medicine labels — using efficient, privacy-preserving computer vision models that run **entirely on local hardware**.
 
-VisionMate aims to simplify daily activities such as reading printed text, identifying objects, recognizing currency, and understanding surroundings through an accessible, mobile-friendly platform.
-
----
-
-# Problem Statement
-
-Millions of visually impaired individuals face challenges while performing simple everyday tasks such as reading printed documents, identifying objects, recognizing currency notes, and navigating unfamiliar environments. Existing solutions are often expensive, require specialized hardware, or are difficult to use.
-
-VisionMate addresses these challenges by providing an accessible web application that enables users to perform these tasks independently using voice interaction, camera integration, and intelligent backend services.
+> 📄 For a detailed technical deep-dive into the AI/backend/frontend architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
 
-# Our Solution
+## Problem Statement
 
-VisionMate provides an easy-to-use, voice-assisted platform that enables users to:
+Visually impaired individuals often rely on others for everyday tasks such as reading medicine labels, identifying currency notes, recognizing common household objects, and reading printed text. Existing solutions often depend on cloud connectivity or aren't built for lightweight, privacy-preserving, on-device inference.
 
+---
+
+### Objective
+Build an offline-first, on-device AI assistant that enables visually impaired users to:
 - Read printed text aloud
-- Identify surrounding objects
-- Recognize currency notes
-- Describe nearby surroundings
-- Navigate the application using either voice commands or touch gestures
-- Receive spoken feedback through Text-to-Speech
-
-The application has been designed with accessibility as the primary focus, ensuring a simple, responsive, and user-friendly experience across mobile devices.
+- Identify common objects
+- Recognize Indian currency
+- Read medicine labels
+- Receive instant voice feedback
 
 ---
 
-# Features
+## On-Device AI
 
-### Voice Assisted Navigation
+VisionMate's core AI functionality — object detection and currency recognition — runs **entirely on local hardware** via **ONNX Runtime**. No cloud inference APIs are used for these features.
 
-- Voice-guided welcome message
-- Automatic voice command activation
-- Hands-free navigation
-- Speech recognition support
+- **No internet dependency** for core AI features to function
+- **No user images or data sent to third-party services** — everything is processed locally
+- **Lightweight, CPU-friendly models** — chosen specifically to run without requiring a GPU
 
-### Accessibility
+All AI models/pipelines run locally for optimized, offline-capable inference:
+- **Object Detection:** YOLO11 (nano/small variant), exported to **ONNX** — pretrained on COCO, ~2.6M–9.4M parameters, achieving ~39.5–47% mAP on the standard COCO benchmark
+- **Currency Recognition:** A custom-trained MobileNetV2 classifier, exported to **ONNX** — fine-tuned on a merged dataset of ~21,000 public images plus our own real-world photos, to specifically improve accuracy under real camera conditions
+- **Text Reading & Medicine Labels:** PaddleOCR performs local text extraction from printed documents, signboards, and medicine packaging — parsing out medicine name, dosage, and expiry information without any cloud OCR API
 
-- Large touch-friendly interface
-- Responsive mobile design
-- Voice feedback for every interaction
-- Simple and intuitive workflow
-
-### Functional Modules
-
-- Read Text
-- Object Detection
-- Currency Identification
-- Describe Surroundings
-
-Each module captures an image using the device camera, sends it to the backend for processing, and presents the result both visually and through speech synthesis.
+While inference currently runs via a local FastAPI backend (rather than fully in-browser), all processing stays on the local machine — satisfying the core on-device requirement of no cloud dependency for AI functionality, with full browser-based inference (via ONNX Runtime Web) noted as a future goal below.
 
 ---
 
-# User Workflow
+## Engineering Details
 
-1. Launch VisionMate.
-2. The application welcomes the user through voice.
-3. Voice recognition automatically starts listening for commands.
-4. The user can:
-   - Tap anywhere on the screen, or
-   - Speak one of the available commands.
-5. The application navigates to the selected feature.
-6. The device camera opens.
-7. An image is captured.
-8. The image is sent to the backend.
-9. The processed result is displayed.
-10. The result is read aloud to the user.
+**Target Hardware:** Built and optimized to run locally on a standard laptop CPU via ONNX Runtime — no GPU or specialized hardware required, and no cloud inference dependency.
+
+**Model Footprint:** Our fine-tuned currency classifier (MobileNetV2-based) exports to an ONNX file of ~8.9MB — small enough to load instantly and run comfortably within local memory alongside the YOLO11 object detector.
+
+**Text & Medicine Reading:** Text extraction uses PaddleOCR, running entirely locally to read printed text, signboards, and medicine packaging — parsing out medicine name, dosage, and expiry details without relying on any cloud OCR service. 
+
+**Performance Metrics:** Currency recognition completes in ~100ms per image. Object detection (YOLO11m) completes in ~440ms per image on a standard laptop CPU, steady-state after initial model load (~9ms preprocessing, ~380ms inference, ~7ms postprocessing) — measured locally via ONNX Runtime, no GPU used.
+
+**Customization:** We fine-tuned a MobileNetV2 classifier on a merged dataset of ~21,000 currency images from two Roboflow Universe sources. During testing, we discovered the model — despite ~98% validation accuracy — failed to generalize to real camera photos due to a domain gap between the clean training images and real-world conditions. We root-caused this through systematic isolation testing, then fixed it by retraining specifically on a small set of our own real-world photos, improving real-world reliability. A held-out confusion matrix on real photos confirmed ~78% accuracy on this final model.
 
 ---
 
-# Frontend Technologies Used
+## User Workflow
 
-## Programming Languages
+1. User opens the web application.
+2. The app welcomes the user through voice and begins listening for voice commands.
+3. User points the camera at an object, or navigates via touch/voice.
+4. User presses **Scan** (or gives a voice command).
+5. The image is sent to the local AI backend.
+6. YOLO detects objects / the currency classifier identifies denominations / PaddleOCR extracts text, depending on the selected feature.
+7. The backend combines and formats the result.
+8. The result is displayed on screen **and** read aloud via Text-to-Speech.
 
-- JavaScript
-- HTML5
-- CSS3
+---
 
-## Frameworks & Libraries
+## Tech Stack
 
-- React
-- Vite
+### Frontend
+- React.js + Vite
+- JavaScript, HTML5, CSS3
 - React Router DOM
-- React Icons
+- Web Speech API (recognition + synthesis)
+- MediaDevices API (`getUserMedia`) for camera access
 
-## Browser APIs
+### Backend
+- FastAPI (Python)
+- Uvicorn
 
-- Web Speech API
-- Speech Synthesis API
-- MediaDevices API
+### AI / Computer Vision
+- Python
+- Ultralytics YOLO11 (object detection)
+- PyTorch + MobileNetV2 (currency recognition, transfer learning)
+- ONNX / ONNX Runtime (optimized local inference)
+- PaddleOCR (text and medicine label reading)
+- OpenCV (image preprocessing)
 
----
+### Training & Data
+- Google Colab (GPU-based model training)
+- Roboflow Universe (currency datasets)
+- COCO (object detection benchmark/pretraining)
+- Custom-collected real-world currency photos
 
-# Project Structure
-
-```
-visionmate
-│
-├── ai/
-│
-├── client/
-│   ├── public/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   │
-│   ├── package.json
-│   └── vite.config.js
-│
-├── server/
-│
-└── README.md
-```
+### Version Control
+- Git, GitHub
 
 ---
 
-# Frontend Highlights
+## System Architecture
 
-The frontend has been developed with accessibility and ease of use as the primary design goals.
-
-Key implementations include:
-
-- Responsive user interface
-- Camera integration
-- Voice-guided onboarding
-- Automatic speech recognition
-- Touch and voice-based navigation
-- Text-to-Speech output
-- Modular React component architecture
-- Mobile-first design approach
+see [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
 
-# Installation
+## Project Structure
 
-## Clone the Repository
+see [ARCHITECTURE.md](./ARCHITECTURE.md)
 
+---
+
+## Setup Instructions
+
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/saumyabaranwal/visionmate.git
-```
-
-## Navigate to the Project
-
-```bash
 cd visionmate
 ```
 
-## Install Frontend Dependencies
-
+### 2. Frontend Setup
 ```bash
 cd client
 npm install
-```
-
-## Run the Frontend
-
-```bash
 npm run dev
 ```
+The frontend runs at `http://localhost:5173` by default.
 
-The application will start on the local development server.
+### 3. Backend + AI Setup
+```bash
+cd server
+python -m venv venv
+source venv/Scripts/activate      # On Windows (Git Bash)
+# source venv/bin/activate        # On Mac/Linux
 
----
+pip install -r ai/requirements.txt
+uvicorn main:app --reload
+```
+The backend runs at `http://127.0.0.1:8000` by default.
 
-# Accessibility Features
+> **Note:** Trained model files (`.onnx`) are not included in version control due to file size. Contact the team for the model files, or retrain using the instructions in `ARCHITECTURE.md`.
 
-VisionMate has been designed with accessibility at its core.
-
-Implemented accessibility features include:
-
-- Voice-guided user interaction
-- Automatic speech recognition
-- Audio feedback through Text-to-Speech
-- Large and easily accessible controls
-- Responsive interface for mobile devices
-- Camera-based interaction
-- Minimal user input requirement
-
----
-
-# Challenges Faced
-
-Throughout the development process, several challenges were encountered while implementing a seamless user experience.
-
-Major challenges included:
-
-- Building an accessible interface suitable for visually impaired users.
-- Integrating browser-based speech recognition and speech synthesis.
-- Managing camera permissions across different devices.
-- Designing responsive layouts optimized for smartphones.
-- Connecting frontend components with backend APIs.
-- Collaborating efficiently using Git and GitHub.
-
-These challenges helped strengthen our understanding of frontend architecture, accessibility principles, and collaborative software development.
+**Both frontend and backend must be running simultaneously** for the app to function.
 
 ---
 
-# Learnings
+## Usage Instructions
 
-Working on VisionMate provided valuable experience in:
-
-- React application development
-- Component-based architecture
-- Client-side routing
-- Browser APIs
-- Voice-based user interaction
-- Camera integration
-- Responsive UI design
-- Git and GitHub collaboration
-- Team-based software development
+1. Start both the frontend and backend servers (see Setup above).
+2. Open `http://localhost:5173` in your browser.
+3. Allow camera and microphone permissions when prompted.
+4. Choose a feature (Read Text, Object Detection, Currency Detection, Surroundings) via touch or voice command.
+5. Point the camera at the object/note/text and tap **Scan**.
+6. The result will be displayed on screen and read aloud automatically.
 
 ---
 
-# Future Enhancements
+## Demo
 
-Potential improvements include:
-
-- Multi-language support
-- Offline functionality
-- Emergency SOS feature
-- Wearable device support
-- Indoor navigation assistance
-- Personalized accessibility settings
+📹 **Demo Video:** *[Add link here before submission]*
 
 ---
 
-# Computer Vision & AI
+## Screenshots
 
->
-
-# Contributors
-
-- **Esha Jindal** — Frontend Development
-- **Ammar Rizvi** — Backend
-- **Saumya Baranwal** — Computer Vision
-- **Moulik Satija** — OCR &Accessibility
+*[Add screenshots of Home, Object Detection, Currency Detection, and Read Text pages before submission]*
 
 ---
 
-# License
+## Team
+
+| Name | Role |
+|---|---|
+| **Esha Jindal** | Frontend Development |
+| **Ammar Rizvi** | Backend |
+| **Saumya Baranwal** | Computer Vision |
+| **Moulik Satija** | OCR & Accessibility |
+
+---
+
+## Known Limitations
+
+- **Currency recognition** performs best when the note is held flat, well-lit, and filling most of the frame. Accuracy on casually-angled or poorly-lit photos is lower — this stems from a real-world data generalization gap identified and partially addressed during development (see `ARCHITECTURE.md` for details).
+- **Object detection** uses a general-purpose pretrained model (COCO's 80 categories); visually similar small objects (e.g. a knife vs. a toothbrush) may occasionally be misclassified — a known limitation of general object detectors without task-specific fine-tuning.
+- **Inference currently runs via a local backend server**, not fully in-browser. This still satisfies the on-device/offline/privacy-preserving goal (no cloud APIs, no data leaves the local machine), but is not yet a zero-backend, purely browser-based implementation.
+
+---
+
+## Future Scope
+
+- Fine-tuning object detection on task-specific photos to resolve small-object confusion
+- Expanding currency recognition to include international currencies
+- Voice commands and continuous scanning mode
+- Multi-language OCR support
+- Scene description ("Surroundings" feature)
+- Browser-based ONNX inference (removing the backend dependency entirely, via ONNX Runtime Web)
+- Progressive Web App (PWA) support for installable, app-like usage
+- SAHI (Slicing Aided Hyper Inference) for improved detection of small/distant objects
+
+---
+
+## Hackathon Highlights
+
+- ✅ On-device AI — no cloud inference APIs
+- ✅ Offline-first inference
+- ✅ Lightweight, CPU-friendly models (ONNX Runtime)
+- ✅ Accessibility-first design
+- ✅ Privacy-preserving — no data leaves the local machine
+- ✅ Real-world impact for visually impaired users
+
+---
+
+## License
 
 This project was developed as part of a hackathon to promote accessible technology solutions for visually impaired individuals.
