@@ -55,20 +55,22 @@ async def read_text_endpoint(image: UploadFile = File(...)):
 
 @app.post("/api/object-detection")
 async def object_detection(image: UploadFile = File(...)):
-    return {
-        "success": False,
-        "message": "Object detection temporarily disabled."
-    }
+    path = await save_image(image)
+
+    result = detect_objects(path)
+
+    return result
 
    
 
 
 @app.post("/api/currency-detection")
 async def currency_detection(image: UploadFile = File(...)):
-    return {
-        "success": False,
-        "message": "Currency detection temporarily disabled."
-    }
+    path = await save_image(image)
+
+    result = detect_currency(path)
+
+    return result
 
 @app.post("/api/surroundings")
 async def surroundings(image: UploadFile = File(...)):

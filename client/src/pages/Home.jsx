@@ -4,72 +4,105 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
 function Home() {
-  const navigate = useNavigate();
-  const hasSpoken = useRef(false);
+    const navigate = useNavigate();
 
-  useEffect(() => {
-    if (hasSpoken.current) return;
+    const hasSpoken = useRef(false);
+    const recognitionRef = useRef(null);
 
-    hasSpoken.current = true;
+    useEffect(() => {
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
-    const speech = new SpeechSynthesisUtterance(
-      "Welcome to VisionMate. Tap anywhere on the screen to choose a feature. Or simply say Read Text, Object Detection, Currency Identification, or Describe Surroundings."
-    );
+    if (!SpeechRecognition) return;
 
-    speech.rate = 1;
-    speech.pitch = 1;
-    speech.volume = 1;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event) => {
+        const command =
+            event.results[event.resultIndex][0].transcript.toLowerCase();
+
+        console.log(command);
+
+        if (command.includes("read") && command.includes("text")) {
+            recognition.stop();
+            navigate("/read-text");
+        } else if (command.includes("object")) {
+            recognition.stop();
+            navigate("/object-detection");
+        } else if (command.includes("currency")) {
+            recognition.stop();
+            navigate("/currency-detection");
+        } else if (
+            command.includes("surroundings") ||
+            command.includes("surrounding")
+        ) {
+            recognition.stop();
+            navigate("/surroundings");
+        } else if (command.includes("feature")) {
+            recognition.stop();
+            navigate("/features");
+        }
+    };
+
+    recognition.onerror = () => {
+        recognition.start();
+    };
 
     window.speechSynthesis.cancel();
+
+    const speech = new SpeechSynthesisUtterance(
+        "Welcome to VisionMate. Tap anywhere on the screen to choose a feature. Or simply say Read Text, Object Detection, Currency Identification, or Describe Surroundings."
+    );
+
+    speech.onend = () => {
+        recognition.start();
+    };
+
     window.speechSynthesis.speak(speech);
-  }, []);
 
-  return (
-    <>
+    return () => {
+        recognition.stop();
+        window.speechSynthesis.cancel();
+    };
+}, [navigate]);
 
-      <main
-        className="home"
-        onClick={() => navigate("/features")}
-      >
-        <section className="hero">
+    return (
+        <main
+            className="home"
+            onClick={() => navigate("/features")}
+        >
+            <section className="hero">
 
-          <h1>
-            Welcome to <span>VisionMate</span>
-          </h1>
-          <p>
-            Tap anywhere on the screen to choose a feature.
-            <br /><br />
-            Or simply say
-            <br /><br />
-            Read Text
-            <br />
-            Object Detection
-            <br />
-            Currency Identification
-            <br />
-            Describe Surroundings
-          </p>
+                <h1>
+                    Welcome to <span>VisionMate</span>
+                </h1>
 
-          <button className="mic-btn" disabled>
-            <FaMicrophone />
-          </button>
+                <p>
+                    Tap anywhere on the screen to choose a feature.
+                    <br /><br />
+                    Or simply say
+                    <br /><br />
+                    Read Text
+                    <br />
+                    Object Detection
+                    <br />
+                    Currency Identification
+                    <br />
+                    Describe Surroundings
+                </p>
 
-          <span className="tap-text">
-            Tap anywhere to continue
-          </span>
+                <button className="mic-btn" disabled>
+                    <FaMicrophone />
+                </button>
 
-          <p className="sub-text">
-            Or simply say:
-            <br /><br />
-            Read Text • Object Detection
-            <br />
-            Currency Detection • Describe Surroundings
-          </p>
-
-        </section>
-      </main>
-    </>
-  );
+            </section>
+        </main>
+    );
 }
 
 export default Home;
