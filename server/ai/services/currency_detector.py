@@ -3,10 +3,10 @@ import numpy as np
 import json
 from PIL import Image
 
-session = ort.InferenceSession("ai/models/currency_classifier.onnx", providers=["CPUExecutionProvider"])
+session = ort.InferenceSession("models/currency_classifier.onnx", providers=["CPUExecutionProvider"])
 input_name = session.get_inputs()[0].name
 
-with open("ai/models/class_names.json", "r") as f:
+with open("models/class_names.json", "r") as f:
     class_names = json.load(f)
 
 MEAN = np.array([0.485, 0.456, 0.406], dtype=np.float32)

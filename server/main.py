@@ -72,6 +72,10 @@ async def currency_detection(image: UploadFile = File(...)):
 
     return result
 
+    
+   
+
+
 @app.post("/api/surroundings")
 async def surroundings(image: UploadFile = File(...)):
     path = await save_image(image)
