@@ -7,12 +7,12 @@ This document describes the technical architecture of VisionMate across all thre
 ## System Overview
 
 ```
-┌─────────────────┐      HTTP (image upload)      ┌──────────────────┐
+┌─────────────────┐      HTTPS (image upload)      ┌──────────────────┐
 │   React Frontend │ ─────────────────────────────▶│  FastAPI Backend │
 │   (client/)      │◀───────────────────────────── │  (server/)       │
 └─────────────────┘         JSON response          └──────────────────┘
        │                                                     │
-       │ Camera capture (MediaDevices API)                  │ calls
+       │ Camera capture (MediaDevices API)                   │ calls
        │ Text-to-Speech (Web Speech API)                     ▼
        │                                            ┌──────────────────┐
        └─ Voice/touch navigation                    │   AI Services     │
@@ -28,11 +28,11 @@ All AI inference runs **locally** via ONNX Runtime — no cloud inference APIs a
 ---
 
 ## 1. Frontend Architecture (`client/`)
-# Project Structure
+### 📂 Client Structure
 ```
 visionmate
 │
-├── ai/
+|
 │
 ├── client/
 │   ├── public/
@@ -62,7 +62,7 @@ visionmate
 ---
 
 ## 2. Backend Architecture (`server/`)
-## 📂 Server Structure
+### 📂 Server Structure
 
 ```text
 server/
@@ -96,22 +96,31 @@ server/
 
 - **Framework:** FastAPI (Python)
 - **Role:** Acts as the integration layer between the frontend and the AI services — receives image uploads from the frontend, saves them temporarily, calls into the appropriate AI service function, and returns a structured JSON response.
-- **CORS:** Configured to accept requests from the Vite dev server origin (`http://localhost:5173`)
+- **CORS:** Configured to accept requests from the Vite dev server origin (`https://localhost:5173/`)
 - **Endpoints (per feature module):**
   - `/object-detection` → calls `detect_objects()`
   - `/currency-detection` → calls `detect_currency()`
-  - `/read-text` → OCR pipeline (Moulik's module)
+  - `/read-text` → calls `read_text( )`
   - `/surroundings` → scene description (future/in-progress)
 - **File handling:** Uploaded images are temporarily saved to an `uploads/` directory before being passed to the relevant AI function by file path.
 
-*(Ammar: expand this section with request/response flow details, error handling approach, and any middleware or validation logic.)*
-
 ---
 
-## 3. AI / Computer Vision Architecture (`ai/`)
+## 3. Frontend-Backend Communication
+
+- The frontend is built with **React + Vite**, while the backend uses **FastAPI**.
+- To enable browser access to the **camera** and **microphone**, the frontend is served over **HTTPS** during development using Vite's `basicSsl` plugin.
+- The backend continues to run over **HTTP** on port `8000`.
+- API requests are made to `/api/*` endpoints, which are forwarded to the FastAPI server using Vite's development proxy. This avoids hardcoding backend URLs and simplifies switching between local and deployed environments.
+- The application was tested on both **desktop browsers** and **mobile devices** over the same local Wi-Fi network to verify camera capture, speech recognition, text-to-speech, and backend communication.
+- The frontend can be run on your mobile device if it is connected to the same wifi as your laptop using (`https://YOUR_IP_ADDRESS:5173/`)
+- Each feature provides **voice guidance**, supports **hands-free voice commands**, and delivers **spoken feedback** to improve accessibility for visually impaired users.
+---
+
+## 4. AI / Computer Vision Architecture (`ai/`)
 
 
-### 3.1 Object Detection
+### 4.1 Object Detection
 
 - **Model:** YOLO11 (Ultralytics), pretrained on COCO (80 general object categories)
 - **Optimization:** Exported to **ONNX** format for fast, lightweight local inference (`yolo11n.onnx` / `yolo11s.onnx` depending on the accuracy/speed tradeoff chosen)
@@ -119,7 +128,7 @@ server/
 - **Output:** List of detected objects (label + confidence), plus a `spoken_text` field summarizing the top 1-2 most confident detections into a natural sentence for voice output
 - **Known limitation:** Detection is limited to COCO's 80 categories; objects outside this set, or visually similar small/thin objects (e.g. knives vs. toothbrushes), can be misclassified. This is a known limitation of general-purpose pretrained detectors without task-specific fine-tuning.
 
-### 3.2 Currency Recognition
+### 4.2 Currency Recognition
 
 - **Model:** MobileNetV2 (transfer learning) — pretrained feature extractor frozen, only the final classification head trained
 - **Dataset:** Merged from two Roboflow Universe sources (~21,000 images total) plus custom real-world photos taken specifically to close a generalization gap discovered during testing (see below)
@@ -128,7 +137,7 @@ server/
 - **Optimization:** Exported to ONNX; inference uses `onnxruntime` directly (manual preprocessing: resize to 224×224, ImageNet normalization, softmax over model output)
 - **Output:** Predicted denomination + confidence + a `spoken_text` field (with a fallback message for low-confidence predictions, prompting the user to retry with better lighting/framing)
 
-### 3.3 Shared AI Design Principles
+### 4.3 Shared AI Design Principles
 
 - All models run via **ONNX Runtime**, chosen for framework-independent, CPU-friendly local inference
 - Every service exposes a single simple function (`detect_objects(image_path)`, `detect_currency(image_path)`) so the backend can call them without needing to know model internals
@@ -136,34 +145,34 @@ server/
 
 ---
 
-## 4. OCR & Accessibility (`ai/services/ocr_service.py`, `medicine_service.py`)
+## 5. OCR & Accessibility (`ai/services/ocr_service.py`, `medicine_service.py`)
 
 - **Role:** Extracts printed text from images (signboards, documents, labels) and specifically parses medicine packaging for name, dosage, and expiry information, converting both into clean, speech-ready output.
 
-### 4.1 Text Extraction (OCR)
+### 5.1 Text Extraction (OCR)
 
 - **Model:** PaddleOCR (PP-OCRv6 pipeline, via PaddleX), with document orientation classification and text-line angle correction enabled — handles signboards/labels photographed at a slight tilt rather than only perfectly flat documents.
 - **Preprocessing:** Each frame is cleaned before OCR to improve accuracy on small/blurry/glossy text — grayscale conversion, denoising (`fastNlMeansDenoising`), adaptive thresholding (handles uneven lighting across a label), and deskewing (corrects camera-angle tilt via `minAreaRect` on foreground text pixels).
 - **Language:** English only for now (`lang="en"`); PaddleOCR supports swapping this parameter, so multi-language support is a straightforward future extension rather than a rebuild.
 
-### 4.2 Medicine Label Parsing
+### 5.2 Medicine Label Parsing
 
 - **Approach:** Pattern-based heuristics, not a trained classifier — regex extraction for dosage (`\d+(mg|mcg|ml|g|iu)`) and expiry dates (labeled `EXP`/`EXPIRY` patterns, with a bare-date fallback), plus a longest-non-noise-line heuristic to guess the medicine name from OCR output.
 - **Known limitation:** The name-detection heuristic works well on clean, simple packaging but can misfire on cluttered or multi-column layouts (e.g. picking an address or pharmacy line over the actual drug name if it happens to be longer/positioned earlier). This mirrors the object detector's "known limitation without task-specific fine-tuning" — a trained field-classifier would be the natural next step rather than pure regex.
 
-### 4.3 Key Engineering Findings
+### 5.3 Key Engineering Findings
 
 - **PaddleOCR 3.x API drift from documented examples:** Most available tutorials/docs reference PaddleOCR 2.x's API (`PaddleOCR(show_log=False)`, `.ocr(img, cls=True)`, results as `[box, (text, confidence)]` tuples). PaddleOCR 3.7.0 changed all three — `show_log` was removed, `.ocr()` now delegates to `.predict()`, and results come back as dict-like objects with `rec_texts`/`rec_scores`/`rec_polys` keys instead of nested tuples. Required tracing actual runtime errors rather than trusting existing documentation/tutorials.
 - **oneDNN/MKLDNN inference crash on Windows CPU:** `PaddleOCR.predict()` raised a `NotImplementedError` from Paddle's newer PIR executor (`ConvertPirAttribute2RuntimeAttribute not support ...`) during text detection specifically on Windows CPU inference. Root-caused to Paddle's oneDNN acceleration path; fixed by disabling it (`enable_mkldnn=False`), trading a small amount of inference speed for stability — acceptable since VisionMate processes single scanned frames, not video streams.
 
-### 4.4 Output Format
+### 5.4 Output Format
 
 Following the same convention as `detect_objects()`/`detect_currency()` — a single path-based function per feature, returning a pre-formatted `spoken_text` field:
 
 - `read_text(image_path)` → `{"success", "text", "spoken_text", "lines"}` — `lines` retains per-line text/confidence/bounding-box for any future use (e.g. confidence-based fallback messaging), while `text`/`spoken_text` carry the same value today for direct consumption by the frontend and Web Speech API.
 - `read_medicine(image_path)` → `{"success", "name", "dosage", "expiry", "spoken_text"}` — `spoken_text` is a full natural-language sentence (e.g. *"This appears to be Paracetamol. Dosage: 500mg. Expiry date not found — please check manually."*) rather than raw JSON, since structured fields alone read poorly aloud.
 
-### 4.5 Exposed via
+### 5.5 Exposed via
 
 - `POST /api/read-text` — general-purpose text reader (books, signs, menus, documents)
 - `POST /api/medicine-reader` — medicine label reader (backend ready; no dedicated frontend page yet)

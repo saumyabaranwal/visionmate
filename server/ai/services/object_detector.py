@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-model = YOLO("yolo11n.onnx")
+model = YOLO("yolo11m.pt")
 
 
 def detect_objects(image_path, confidence_threshold=0.55):
