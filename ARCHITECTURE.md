@@ -138,7 +138,34 @@ server/
 
 ## 4. OCR & Accessibility (`ai/services/ocr_service.py`, `medicine_service.py`)
 
+- **Role:** Extracts printed text from images (signboards, documents, labels) and specifically parses medicine packaging for name, dosage, and expiry information, converting both into clean, speech-ready output.
 
-- **Role:** Extracts printed text from images (signboards, documents, labels) and specifically parses medicine packaging for name, dosage, and expiry information.
-- **Pipeline (per project plan):** PaddleOCR for text extraction, feeding into a medicine-specific parsing layer to pull out structured fields (name/dosage/expiry) from raw OCR text.
-- **Exposed via:** `/read-text` route (and a medicine-specific endpoint), following the same pattern as the other AI services — takes an image path, returns structured text/results plus accessibility improvements (e.g. cleanup of noisy OCR output before it's sent to speech synthesis).
+### 4.1 Text Extraction (OCR)
+
+- **Model:** PaddleOCR (PP-OCRv6 pipeline, via PaddleX), with document orientation classification and text-line angle correction enabled — handles signboards/labels photographed at a slight tilt rather than only perfectly flat documents.
+- **Preprocessing:** Each frame is cleaned before OCR to improve accuracy on small/blurry/glossy text — grayscale conversion, denoising (`fastNlMeansDenoising`), adaptive thresholding (handles uneven lighting across a label), and deskewing (corrects camera-angle tilt via `minAreaRect` on foreground text pixels).
+- **Language:** English only for now (`lang="en"`); PaddleOCR supports swapping this parameter, so multi-language support is a straightforward future extension rather than a rebuild.
+
+### 4.2 Medicine Label Parsing
+
+- **Approach:** Pattern-based heuristics, not a trained classifier — regex extraction for dosage (`\d+(mg|mcg|ml|g|iu)`) and expiry dates (labeled `EXP`/`EXPIRY` patterns, with a bare-date fallback), plus a longest-non-noise-line heuristic to guess the medicine name from OCR output.
+- **Known limitation:** The name-detection heuristic works well on clean, simple packaging but can misfire on cluttered or multi-column layouts (e.g. picking an address or pharmacy line over the actual drug name if it happens to be longer/positioned earlier). This mirrors the object detector's "known limitation without task-specific fine-tuning" — a trained field-classifier would be the natural next step rather than pure regex.
+
+### 4.3 Key Engineering Findings
+
+- **PaddleOCR 3.x API drift from documented examples:** Most available tutorials/docs reference PaddleOCR 2.x's API (`PaddleOCR(show_log=False)`, `.ocr(img, cls=True)`, results as `[box, (text, confidence)]` tuples). PaddleOCR 3.7.0 changed all three — `show_log` was removed, `.ocr()` now delegates to `.predict()`, and results come back as dict-like objects with `rec_texts`/`rec_scores`/`rec_polys` keys instead of nested tuples. Required tracing actual runtime errors rather than trusting existing documentation/tutorials.
+- **oneDNN/MKLDNN inference crash on Windows CPU:** `PaddleOCR.predict()` raised a `NotImplementedError` from Paddle's newer PIR executor (`ConvertPirAttribute2RuntimeAttribute not support ...`) during text detection specifically on Windows CPU inference. Root-caused to Paddle's oneDNN acceleration path; fixed by disabling it (`enable_mkldnn=False`), trading a small amount of inference speed for stability — acceptable since VisionMate processes single scanned frames, not video streams.
+
+### 4.4 Output Format
+
+Following the same convention as `detect_objects()`/`detect_currency()` — a single path-based function per feature, returning a pre-formatted `spoken_text` field:
+
+- `read_text(image_path)` → `{"success", "text", "spoken_text", "lines"}` — `lines` retains per-line text/confidence/bounding-box for any future use (e.g. confidence-based fallback messaging), while `text`/`spoken_text` carry the same value today for direct consumption by the frontend and Web Speech API.
+- `read_medicine(image_path)` → `{"success", "name", "dosage", "expiry", "spoken_text"}` — `spoken_text` is a full natural-language sentence (e.g. *"This appears to be Paracetamol. Dosage: 500mg. Expiry date not found — please check manually."*) rather than raw JSON, since structured fields alone read poorly aloud.
+
+### 4.5 Exposed via
+
+- `POST /api/read-text` — general-purpose text reader (books, signs, menus, documents)
+- `POST /api/medicine-reader` — medicine label reader (backend ready; no dedicated frontend page yet)
+
+Both follow the same integration pattern as the other feature endpoints in `server/main.py`: receive upload → save to `uploads/` → call the AI function by path → return its JSON response directly.
