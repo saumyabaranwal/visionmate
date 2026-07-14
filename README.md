@@ -117,26 +117,26 @@ see [ARCHITECTURE.md](./ARCHITECTURE.md)
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/saumyabaranwal/visionmate.git
-cd visionmate
+cd ./visionmate
 ```
 
 ### 2. Frontend Setup
 ```bash
-cd client
+cd ./client
 npm install
 npm run dev
 ```
-The frontend runs at `http://localhost:5173` by default.
+The frontend runs at `https://localhost:5173/` by default.
 
 ### 3. Backend + AI Setup
 ```bash
-cd server
+cd ./server
 python -m venv venv
 source venv/Scripts/activate      # On Windows (Git Bash)
-# source venv/bin/activate        # On Mac/Linux
+source venv/bin/activate        # On Mac/Linux
 
 pip install -r ai/requirements.txt
-uvicorn main:app --reload
+uvicorn main:app --reload --host 0.0.0.0
 ```
 The backend runs at `http://127.0.0.1:8000` by default.
 
@@ -149,10 +149,10 @@ The backend runs at `http://127.0.0.1:8000` by default.
 ## Usage Instructions
 
 1. Start both the frontend and backend servers (see Setup above).
-2. Open `http://localhost:5173` in your browser.
+2. Open `https://localhost:5173/` in your browser.
 3. Allow camera and microphone permissions when prompted.
 4. Choose a feature (Read Text, Object Detection, Currency Detection, Surroundings) via touch or voice command.
-5. Point the camera at the object/note/text and tap **Scan**.
+5. Point the camera at the object/note/text and tap **Scan** or use **Voice Commands**.
 6. The result will be displayed on screen and read aloud automatically.
 
 ---
@@ -173,7 +173,7 @@ The backend runs at `http://127.0.0.1:8000` by default.
 
 | Name | Role |
 |---|---|
-| **Esha Jindal** | Frontend Development |
+| **Esha Jindal** | Frontend |
 | **Ammar Rizvi** | Backend |
 | **Saumya Baranwal** | Computer Vision |
 | **Moulik Satija** | OCR & Accessibility |
