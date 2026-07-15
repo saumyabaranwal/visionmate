@@ -35,7 +35,8 @@ VisionMate's core AI functionality — object detection and currency recognition
 All AI models/pipelines run locally for optimized, offline-capable inference:
 - **Object Detection:** YOLO11 (nano/small variant), exported to **ONNX** — pretrained on COCO, ~2.6M–9.4M parameters, achieving ~39.5–47% mAP on the standard COCO benchmark
 - **Currency Recognition:** A custom-trained MobileNetV2 classifier, exported to **ONNX** — fine-tuned on a merged dataset of ~21,000 public images plus our own real-world photos, to specifically improve accuracy under real camera conditions
-- **Text Reading & Medicine Labels:** PaddleOCR performs local text extraction from printed documents, signboards, and medicine packaging — parsing out medicine name, dosage, and expiry information without any cloud OCR API
+- **Text Reading:** PaddleOCR (English model) performs local optical character recognition (OCR) with document orientation classification and text-angle correction enabled. Images undergo grayscale conversion, denoising, adaptive thresholding, and deskewing before inference to improve recognition under uneven lighting and slight camera rotation. The extracted text is returned with per-line confidence scores and bounding boxes, enabling lightweight, CPU-friendly offline text reading without relying on any cloud OCR API.
+- **Medicine Label Reading:** Built on the same PaddleOCR pipeline, a custom rule-based parser extracts structured information from medicine packaging, including the medicine name, dosage, and expiry date. Dosages and expiry dates are identified using regex-based pattern matching, while medicine names are inferred using heuristics on the OCR output, producing structured, speech-ready results entirely on-device without transmitting user data to third-party services.
 
 While inference currently runs via a local FastAPI backend (rather than fully in-browser), all processing stays on the local machine — satisfying the core on-device requirement of no cloud dependency for AI functionality, with full browser-based inference (via ONNX Runtime Web) noted as a future goal below.
 
@@ -47,7 +48,9 @@ While inference currently runs via a local FastAPI backend (rather than fully in
 
 **Model Footprint:** Our fine-tuned currency classifier (MobileNetV2-based) exports to an ONNX file of ~8.9MB — small enough to load instantly and run comfortably within local memory alongside the YOLO11 object detector.
 
-**Text & Medicine Reading:** Text extraction uses PaddleOCR, running entirely locally to read printed text, signboards, and medicine packaging — parsing out medicine name, dosage, and expiry details without relying on any cloud OCR service. 
+**Text Reading:** PaddleOCR 3.7.0 (PP-OCRv5 English) performs local optical character recognition using lightweight detection and recognition models (~7–16 MB combined). The PP-OCRv5 recognition model achieves up to 13% higher recognition accuracy than the previous generation while remaining optimized for CPU inference. Images are preprocessed using grayscale conversion, denoising, adaptive thresholding, and deskewing before OCR to improve recognition under real-world lighting conditions.
+
+**Medicine Label Reading:** Built on the same PP-OCRv5 pipeline, medicine packaging is processed entirely on-device before a custom parser extracts the **medicine name**, **dosage**, and **expiry date**. Dosages and expiry dates are identified using regex-based pattern matching, while medicine names are inferred using lightweight heuristics, producing structured, speech-ready output without requiring any cloud OCR service.
 
 **Performance Metrics:** Currency recognition completes in ~100ms per image. Object detection (YOLO11m) completes in ~440ms per image on a standard laptop CPU, steady-state after initial model load (~9ms preprocessing, ~380ms inference, ~7ms postprocessing) — measured locally via ONNX Runtime, no GPU used.
 
