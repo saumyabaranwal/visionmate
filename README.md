@@ -32,11 +32,15 @@ VisionMate's core AI functionality — object detection and currency recognition
 - **No user images or data sent to third-party services** — everything is processed locally
 - **Lightweight, CPU-friendly models** — chosen specifically to run without requiring a GPU
 
-All AI models/pipelines run locally for optimized, offline-capable inference:
-- **Object Detection:** YOLO11 (nano/small variant), exported to **ONNX** — pretrained on COCO, ~2.6M–9.4M parameters, achieving ~39.5–47% mAP on the standard COCO benchmark
-- **Currency Recognition:** A custom-trained MobileNetV2 classifier, exported to **ONNX** — fine-tuned on a merged dataset of ~21,000 public images plus our own real-world photos, to specifically improve accuracy under real camera conditions
-- **Text Reading:** PaddleOCR (English model) performs local optical character recognition (OCR) with document orientation classification and text-angle correction enabled. Images undergo grayscale conversion, denoising, adaptive thresholding, and deskewing before inference to improve recognition under uneven lighting and slight camera rotation. The extracted text is returned with per-line confidence scores and bounding boxes, enabling lightweight, CPU-friendly offline text reading without relying on any cloud OCR API.
-- **Medicine Label Reading:** Built on the same PaddleOCR pipeline, a custom rule-based parser extracts structured information from medicine packaging, including the medicine name, dosage, and expiry date. Dosages and expiry dates are identified using regex-based pattern matching, while medicine names are inferred using heuristics on the OCR output, producing structured, speech-ready results entirely on-device without transmitting user data to third-party services.
+All AI inference runs locally through a FastAPI backend using ONNX Runtime, ensuring no cloud dependency and that user data never leaves the device.
+
+**Object Detection:** YOLO11 (nano/small variant), exported to ONNX and pretrained on COCO (~2.6M–9.4M parameters, 39.5–47% mAP), provides efficient real-time object detection on CPU.
+
+**Currency Recognition:** A custom MobileNetV2 classifier, exported to ONNX, was fine-tuned on a merged dataset of ~21,000 public images along with our own real-world photos to improve robustness under practical camera conditions.
+
+**Text Reading:** PaddleOCR (PP-OCRv5 English) performs offline OCR with document orientation correction and image preprocessing (grayscale conversion, denoising, adaptive thresholding, and deskewing). It returns recognized text along with confidence scores and bounding boxes for lightweight CPU-based text reading.
+
+**Medicine Label Reading:** Built on the same PaddleOCR pipeline, a rule-based parser extracts medicine name, dosage, and expiry date using OCR heuristics and regex-based pattern matching, producing structured speech-ready output entirely on-device.
 
 While inference currently runs via a local FastAPI backend (rather than fully in-browser), all processing stays on the local machine — satisfying the core on-device requirement of no cloud dependency for AI functionality, with full browser-based inference (via ONNX Runtime Web) noted as a future goal below.
 
@@ -44,17 +48,16 @@ While inference currently runs via a local FastAPI backend (rather than fully in
 
 ## Engineering Details
 
-**Target Hardware:** Built and optimized to run locally on a standard laptop CPU via ONNX Runtime — no GPU or specialized hardware required, and no cloud inference dependency.
+**Target Hardware:** Standard laptop CPU; no GPU or specialized hardware required.
 
-**Model Footprint:** Our fine-tuned currency classifier (MobileNetV2-based) exports to an ONNX file of ~8.9MB — small enough to load instantly and run comfortably within local memory alongside the YOLO11 object detector.
-
+**Model Footprint:** MobileNetV2 ONNX (~8.9 MB); PaddleOCR models (~7–16 MB combined); lightweight YOLO11 ONNX detector .
 **Text Reading:** PaddleOCR 3.7.0 (PP-OCRv5 English) performs local optical character recognition using lightweight detection and recognition models (~7–16 MB combined). The PP-OCRv5 recognition model achieves up to 13% higher recognition accuracy than the previous generation while remaining optimized for CPU inference. 
 
 **Medicine Label Reading:** Built on the same PP-OCRv5 pipeline, medicine packaging is processed entirely on-device before a custom parser extracts the **medicine name**, **dosage**, and **expiry date**.
 
 **Performance Metrics:** Currency recognition completes in ~100ms per image. Object detection (YOLO11m) completes in ~440ms per image on a standard laptop CPU, steady-state after initial model load (~9ms preprocessing, ~380ms inference, ~7ms postprocessing) — measured locally via ONNX Runtime, no GPU used.
 
-**Customization:** We fine-tuned a MobileNetV2 classifier on a merged dataset of ~21,000 currency images from two Roboflow Universe sources. During testing, we discovered the model — despite ~98% validation accuracy — failed to generalize to real camera photos due to a domain gap between the clean training images and real-world conditions. We root-caused this through systematic isolation testing, then fixed it by retraining specifically on a small set of our own real-world photos, improving real-world reliability. A held-out confusion matrix on real photos confirmed ~78% accuracy on this final model.
+**Customization:** Initial training on ~21,000 public images achieved high validation accuracy but struggled on real camera images due to domain shift. Retraining with our own real-world photos improved robustness, achieving ~78% accuracy on a held-out real-world test set.
 
 ---
 
@@ -145,8 +148,6 @@ uvicorn main:app --reload --host 0.0.0.0
 ```
 The backend runs at `http://127.0.0.1:8000` by default.
 
-> **Note:** Trained model files (`.onnx`) are not included in version control due to file size. Contact the team for the model files, or retrain using the instructions in `ARCHITECTURE.md`.
-
 **Both frontend and backend must be running simultaneously** for the app to function.
 
 ---
@@ -164,24 +165,27 @@ The backend runs at `http://127.0.0.1:8000` by default.
 
 ## Demo
 
-📹 **Demo Video:** *[Add link here before submission]*
+📹 [View Demo Video](https://drive.google.com/drive/folders/14pnnmWNN80Z4s1Jf0e_OEBGsBS3m6W0s?usp=sharing)
 
 ---
 
 ## Screenshots
 
-*[Add screenshots of Home, Object Detection, Currency Detection, and Read Text pages before submission]*
+<img width="1577" height="866" alt="image" src="https://github.com/user-attachments/assets/9153fab0-4c91-4dbe-a7d3-48ec160d7b9c" />
+<img width="1362" height="683" alt="image" src="https://github.com/user-attachments/assets/48a47f8a-7270-40fa-bf19-cd0c70aaec55" />
+
+
 
 ---
 
 ## Privacy & Safety
 
-• Camera and microphone permissions are requested only to enable accessibility features.
-• Images are processed locally and are not permanently stored.
-• No user data is uploaded to external servers.
-• Incorrect detections may occur under poor lighting or occlusion, so results should not be treated as professional medical advice.
+- Camera and microphone permissions are requested only to enable accessibility features.
+- Images are processed locally and are not permanently stored.
+- No user data is uploaded to external servers.
+- Incorrect detections may occur under poor lighting or occlusion, so results should not be treated as professional medical advice.
 
-## Team
+## Team CodeLlamas
 
 | Name | Role |
 |---|---|
@@ -210,17 +214,6 @@ The backend runs at `http://127.0.0.1:8000` by default.
 - Browser-based ONNX inference (removing the backend dependency entirely, via ONNX Runtime Web)
 - Progressive Web App (PWA) support for installable, app-like usage
 - SAHI (Slicing Aided Hyper Inference) for improved detection of small/distant objects
-
----
-
-## Hackathon Highlights
-
-- ✅ On-device AI — no cloud inference APIs
-- ✅ Offline-first inference
-- ✅ Lightweight, CPU-friendly models (ONNX Runtime)
-- ✅ Accessibility-first design
-- ✅ Privacy-preserving — no data leaves the local machine
-- ✅ Real-world impact for visually impaired users
 
 ---
 
