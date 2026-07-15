@@ -4,6 +4,8 @@ import os
 from ai.services.object_detector import detect_objects
 from ai.services.currency_detector import detect_currency
 from ai.services.ocr_service import read_text
+from ai.services.medicine_service import read_medicine
+
 
 
 
@@ -44,13 +46,13 @@ async def read_text_endpoint(image: UploadFile = File(...)):
     return result
 
 
-# @app.post("/api/medicine-reader")
-# async def medicine_reader(image: UploadFile = File(...)):
-#     path = await save_image(image)
+@app.post("/api/read-medicine")
+async def medicine_reader(image: UploadFile = File(...)):
+    path = await save_image(image)
 
-#     result = read_medicine(path)
+    result = read_medicine(path)
 
-#     return result
+    return result
 
 
 @app.post("/api/object-detection")
@@ -72,16 +74,3 @@ async def currency_detection(image: UploadFile = File(...)):
 
     return result
 
-    
-   
-
-
-@app.post("/api/surroundings")
-async def surroundings(image: UploadFile = File(...)):
-    path = await save_image(image)
-
-
-    return {
-        "success": True,
-        "description": "tree"
-    }

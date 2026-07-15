@@ -7,7 +7,7 @@ import {
   FaFileAlt,
   FaCube,
   FaMoneyBillWave,
-  FaWalking,
+  FaPills,
   FaArrowLeft,
 } from "react-icons/fa";
 
@@ -57,10 +57,10 @@ function FeatureSelection() {
           />
 
           <FeatureCard
-            icon={<FaWalking />}
-            title="Describe Surroundings"
-            description="Detect surroundings and obstacles."
-            onClick={() => navigate("/surroundings")}
+            icon={<FaPills />}
+            title="Read Medicine"
+            description="Read medicines and prescription."
+            onClick={() => navigate("/read-medicine")}
           />
 
         </div>

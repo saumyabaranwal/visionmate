@@ -38,11 +38,10 @@ function Home() {
             recognition.stop();
             navigate("/currency-detection");
         } else if (
-            command.includes("surroundings") ||
-            command.includes("surrounding")
+            command.includes("medicine") 
         ) {
             recognition.stop();
-            navigate("/surroundings");
+            navigate("/read-medicine");
         } else if (command.includes("feature")) {
             recognition.stop();
             navigate("/features");
@@ -56,7 +55,7 @@ function Home() {
     window.speechSynthesis.cancel();
 
     const speech = new SpeechSynthesisUtterance(
-        "Welcome to VisionMate. Tap anywhere on the screen to choose a feature. Or simply say Read Text, Object Detection, Currency Identification, or Describe Surroundings."
+        "Welcome to VisionMate. Tap anywhere on the screen to choose a feature. Or simply say Read Text, Object Detection, Currency Identification, or Read Medicine."
     );
 
     speech.onend = () => {
@@ -93,7 +92,7 @@ function Home() {
                     <br />
                     Currency Identification
                     <br />
-                    Describe Surroundings
+                    Read Medicine
                 </p>
 
                 <button className="mic-btn" disabled>

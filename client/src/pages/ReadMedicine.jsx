@@ -1,10 +1,10 @@
-import "./Surroundings.css";
+import "./ReadMedicine.css";
 import CameraView from "../components/CameraView";
 import { FaArrowLeft, FaVolumeUp } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 
-function Surroundings() {
+function ReadMedicine() {
     const navigate = useNavigate();
 
     const videoRef = useRef(null);
@@ -42,20 +42,20 @@ function Surroundings() {
             try {
                 setLoading(true);
 
-                const response = await fetch("/api/surroundings", {
+                const response = await fetch("/api/read-medicine", {
                     method: "POST",
                     body: formData,
                 });
 
                 const data = await response.json();
 
-                setResult(data.description);
+                setResult(data.spoken_text);
                 setLoading(false);
 
                 window.speechSynthesis.cancel();
 
                 const speech = new SpeechSynthesisUtterance(
-                    data.description
+                    data.spoken_text
                 );
 
                 speech.onend = () => {
@@ -119,7 +119,7 @@ function Surroundings() {
         window.speechSynthesis.cancel();
 
         const speech = new SpeechSynthesisUtterance(
-            "Describe surroundings selected. Point your camera towards your surroundings and say scan, or press the Describe Surroundings button."
+            "Read Medicine selected. Point your camera towards medicine or prescription and say scan, or press the Read Medicine button."
         );
 
         speech.onend = () => {
@@ -145,10 +145,10 @@ function Surroundings() {
                 <FaArrowLeft /> Back
             </button>
 
-            <h1>Describe Surroundings</h1>
+            <h1>Read Medicine</h1>
 
             <p className="description">
-                Point the camera towards your surroundings.
+                Point the camera towards medicine or prescription.
             </p>
 
             <CameraView videoRef={videoRef} />
@@ -158,7 +158,7 @@ function Surroundings() {
                 onClick={captureImage}
                 disabled={loading}
             >
-                {loading ? "Scanning..." : "Describe Surroundings"}
+                {loading ? "Scanning..." : "Read Medicine"}
             </button>
 
             <div className="result-box">
@@ -187,4 +187,4 @@ function Surroundings() {
     );
 }
 
-export default Surroundings;
+export default ReadMedicine;
