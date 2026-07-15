@@ -26,7 +26,7 @@ Build an offline-first, on-device AI assistant that enables visually impaired us
 
 ## On-Device AI
 
-VisionMate's core AI functionality — object detection and currency recognition — runs **entirely on local hardware** via **ONNX Runtime**. No cloud inference APIs are used for these features.
+VisionMate's core AI functionalities run **entirely on local hardware** via **ONNX Runtime**. No cloud inference APIs are used for these features.
 
 - **No internet dependency** for core AI features to function
 - **No user images or data sent to third-party services** — everything is processed locally
