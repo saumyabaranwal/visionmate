@@ -135,7 +135,9 @@ The frontend runs at `https://localhost:5173/` by default.
 ```bash
 cd ./server
 python -m venv venv
-source venv/Scripts/activate      # On Windows (Git Bash)
+source venv/Scripts/activate    # On Windows (Git Bash)
+venv\Scripts\activate.bat       # cmd
+venv\Scripts\Activate.ps1       # powershell
 source venv/bin/activate        # On Mac/Linux
 
 pip install -r ai/requirements.txt
