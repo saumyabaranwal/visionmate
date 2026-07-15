@@ -166,6 +166,7 @@ The backend runs at `http://127.0.0.1:8000` by default.
 ## Demo
 
 📹 [View Demo Video](https://drive.google.com/drive/folders/14pnnmWNN80Z4s1Jf0e_OEBGsBS3m6W0s?usp=sharing)
+- All buttons work on-click or by a speech command.
 
 ---
 
