@@ -48,9 +48,9 @@ While inference currently runs via a local FastAPI backend (rather than fully in
 
 **Model Footprint:** Our fine-tuned currency classifier (MobileNetV2-based) exports to an ONNX file of ~8.9MB — small enough to load instantly and run comfortably within local memory alongside the YOLO11 object detector.
 
-**Text Reading:** PaddleOCR 3.7.0 (PP-OCRv5 English) performs local optical character recognition using lightweight detection and recognition models (~7–16 MB combined). The PP-OCRv5 recognition model achieves up to 13% higher recognition accuracy than the previous generation while remaining optimized for CPU inference. Images are preprocessed using grayscale conversion, denoising, adaptive thresholding, and deskewing before OCR to improve recognition under real-world lighting conditions.
+**Text Reading:** PaddleOCR 3.7.0 (PP-OCRv5 English) performs local optical character recognition using lightweight detection and recognition models (~7–16 MB combined). The PP-OCRv5 recognition model achieves up to 13% higher recognition accuracy than the previous generation while remaining optimized for CPU inference. 
 
-**Medicine Label Reading:** Built on the same PP-OCRv5 pipeline, medicine packaging is processed entirely on-device before a custom parser extracts the **medicine name**, **dosage**, and **expiry date**. Dosages and expiry dates are identified using regex-based pattern matching, while medicine names are inferred using lightweight heuristics, producing structured, speech-ready output without requiring any cloud OCR service.
+**Medicine Label Reading:** Built on the same PP-OCRv5 pipeline, medicine packaging is processed entirely on-device before a custom parser extracts the **medicine name**, **dosage**, and **expiry date**.
 
 **Performance Metrics:** Currency recognition completes in ~100ms per image. Object detection (YOLO11m) completes in ~440ms per image on a standard laptop CPU, steady-state after initial model load (~9ms preprocessing, ~380ms inference, ~7ms postprocessing) — measured locally via ONNX Runtime, no GPU used.
 
@@ -173,6 +173,13 @@ The backend runs at `http://127.0.0.1:8000` by default.
 *[Add screenshots of Home, Object Detection, Currency Detection, and Read Text pages before submission]*
 
 ---
+
+## Privacy & Safety
+
+• Camera and microphone permissions are requested only to enable accessibility features.
+• Images are processed locally and are not permanently stored.
+• No user data is uploaded to external servers.
+• Incorrect detections may occur under poor lighting or occlusion, so results should not be treated as professional medical advice.
 
 ## Team
 
